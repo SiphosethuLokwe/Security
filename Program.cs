@@ -13,9 +13,18 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// Configure Entity Framework and Identity
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")  
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 
+// Configure Entity Framework and Identit
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -54,7 +63,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+    app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
