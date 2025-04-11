@@ -6,6 +6,8 @@ namespace Security.Models.DTO
     {
         [Required]
         public required string Username { get; set; }
+        [MinLength(6)]
+
         [Required]
         public required string Password { get; set; }
     }

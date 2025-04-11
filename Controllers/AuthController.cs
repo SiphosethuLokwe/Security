@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "User").ConfigureAwait(false);
+                await _userManager.AddToRoleAsync(user, "FrontEnd").ConfigureAwait(false);
                 var token = _tokenService.GenerateToken(user);
                 var refreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
                 return Ok(new { Token = token, RefreshToken = refreshToken.Token });

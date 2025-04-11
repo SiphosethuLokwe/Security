@@ -5,7 +5,7 @@
 namespace Security.Migrations
 {
     /// <inheritdoc />
-    public partial class RolesSeeding : Migration
+    public partial class SeedRoles : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -21,11 +21,15 @@ public class TokenService : ITokenService
 
     public string GenerateToken(ApplicationUser user)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+
+        var roles = _userManager.GetRolesAsync(user).Result;
+        claims.AddRange(roles.Select(role => new Claim("Roles", role)));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
