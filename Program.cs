@@ -32,6 +32,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+
 // Configure JWT authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -66,6 +67,11 @@ if (app.Environment.IsDevelopment())
     app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await IdentitySeeder.SeedUsersAsync(services);
+}
 app.UseAuthentication();
 app.UseAuthorization();
 
