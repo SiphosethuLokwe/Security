@@ -12,7 +12,7 @@ public static class IdentitySeeder
         var users = new[]
         {
             new { UserName = "Forntend", Email = "user1@example.com", Password = "Pass@word1" },
-            new { UserName = "admin", Email = "user2@example.com", Password = "Pass@word1" }
+            new { UserName = "Admin", Email = "user2@example.com", Password = "Pass@word1" }
         };
 
         foreach (var u in users)
