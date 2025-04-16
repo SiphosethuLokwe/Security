@@ -70,7 +70,7 @@ app.UseHttpsRedirection();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await IdentitySeeder.SeedUsersAsync(services);
+    await SeedData.SeedUsersAsync(services);
 }
 app.UseAuthentication();
 app.UseAuthorization();
