@@ -23,86 +23,65 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
-        try
+        var validationResult = await _validationService.ValidateRegisterModel(model).ConfigureAwait(false);
+        if (!validationResult.Succeeded)
         {
-            var validationResult = await _validationService.ValidateRegisterModel(model).ConfigureAwait(false);
-            if (!validationResult.Succeeded)
-            {
-                return BadRequest(validationResult.Errors);
-            }
-
-            var user = new ApplicationUser { UserName = model.Username, Email = model.Email };
-            var result = await _userManager.CreateAsync(user, model.Password).ConfigureAwait(false);
-
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, "FrontEnd").ConfigureAwait(false);
-                var token = _tokenService.GenerateToken(user);
-                var refreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
-                return Ok(new { Token = token, RefreshToken = refreshToken.Token });
-            }
-
-            return BadRequest(result.Errors);
+            return BadRequest(validationResult.Errors);
         }
-        catch (Exception ex)
+
+        var user = new ApplicationUser { UserName = model.Username, Email = model.Email };
+        var result = await _userManager.CreateAsync(user, model.Password).ConfigureAwait(false);
+
+        if (result.Succeeded)
         {
-            return StatusCode(500, new { Error = ex.Message });
+            await _userManager.AddToRoleAsync(user, "FrontEnd").ConfigureAwait(false);
+            var token = _tokenService.GenerateToken(user);
+            var refreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
+            return Ok(new { Token = token, RefreshToken = refreshToken.Token });
         }
+
+        return BadRequest(result.Errors);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
-        try
+        var validationResult = await _validationService.ValidateLoginModel(model).ConfigureAwait(false);
+        if (!validationResult.Succeeded)
         {
-            var validationResult = await _validationService.ValidateLoginModel(model).ConfigureAwait(false);
-            if (!validationResult.Succeeded)
-            {
-                return Unauthorized();
-            }
-
-            var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, false).ConfigureAwait(false);
-
-            if (result.Succeeded)
-            {
-                var user = await _userManager.FindByNameAsync(model.Username).ConfigureAwait(false);
-                var token = _tokenService.GenerateToken(user);
-                var refreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
-                return Ok(new { Token = token, RefreshToken = refreshToken.Token });
-            }
-
             return Unauthorized();
         }
-        catch (Exception ex)
+
+        var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, false).ConfigureAwait(false);
+
+        if (result.Succeeded)
         {
-            return StatusCode(500, new { Error = ex.Message });
+            var user = await _userManager.FindByNameAsync(model.Username).ConfigureAwait(false);
+            var token = _tokenService.GenerateToken(user);
+            var refreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
+            return Ok(new { Token = token, RefreshToken = refreshToken.Token });
         }
+
+        return Unauthorized();
     }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshModel model)
     {
-        try
+        var refreshToken = await _tokenService.GetRefreshToken(model.RefreshToken);
+
+        if (refreshToken == null || refreshToken.IsRevoked || refreshToken.IsUsed || refreshToken.ExpiryDate <= DateTime.Now)
         {
-            var refreshToken = await _tokenService.GetRefreshToken(model.RefreshToken);
-
-            if (refreshToken == null || refreshToken.IsRevoked || refreshToken.IsUsed || refreshToken.ExpiryDate <= DateTime.Now)
-            {
-                return Unauthorized();
-            }
-
-            var user = await _userManager.FindByIdAsync(refreshToken.UserId).ConfigureAwait(false);
-            var newToken = _tokenService.GenerateToken(user);
-            var newRefreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
-
-            refreshToken.IsUsed = true;
-            await _tokenService.RevokeRefreshToken(refreshToken).ConfigureAwait(false);
-
-            return Ok(new { Token = newToken, RefreshToken = newRefreshToken.Token });
+            return Unauthorized();
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { Error = ex.Message });
-        }
+
+        var user = await _userManager.FindByIdAsync(refreshToken.UserId).ConfigureAwait(false);
+        var newToken = _tokenService.GenerateToken(user);
+        var newRefreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
+
+        refreshToken.IsUsed = true;
+        await _tokenService.RevokeRefreshToken(refreshToken).ConfigureAwait(false);
+
+        return Ok(new { Token = newToken, RefreshToken = newRefreshToken.Token });
     }
 }

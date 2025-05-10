@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Security.Common;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,8 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+
 
 builder.Services.AddCors(options =>
 {
