@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Security.Models.DTO;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -19,6 +22,56 @@ public class AuthController : ControllerBase
         _tokenService = tokenService;
         _validationService = validationService;
     }
+
+    [HttpGet("external-login")]
+    public IActionResult ExternalLogin(string provider, string returnUrl = null)
+    {
+        var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Auth", new { returnUrl });
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+        return Challenge(properties, provider);
+    }
+
+    [HttpGet("external-login-callback")]
+    public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+    {
+        if (remoteError != null)
+        {
+            return BadRequest(new { Error = $"Error from external provider: {remoteError}" });
+        }
+
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        if (info == null)
+        {
+            return BadRequest(new { Error = "Error loading external login information." });
+        }
+        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(new { Error = "Failed to create user." });
+            }
+
+            await _userManager.AddLoginAsync(user, info);
+        }
+
+        var token = _tokenService.GenerateToken(user);
+        var refreshToken = await _tokenService.GenerateRefreshToken(user);
+
+        return Ok(new { Token = token, RefreshToken = refreshToken.Token });
+    }
+
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
