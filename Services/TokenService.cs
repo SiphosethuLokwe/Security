@@ -24,9 +24,36 @@ public class TokenService : ITokenService
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("UserId", user.Id),
+            new Claim("Email", user.Email ?? ""),
+            new Claim("PhoneNumber", user.PhoneNumber ?? ""),
+            
+            // Personal info
+            new Claim("Title", user.Title ?? ""),
+            new Claim("FirstName", user.FirstName ?? ""),
+            new Claim("LastName", user.LastName ?? ""),
+            new Claim("Race", user.Race ?? ""),
+            new Claim("Gender", user.Gender ?? ""),
+            new Claim("HasDisability", user.HasDisability?.ToString() ?? ""),
+            new Claim("IsSouthAfricanCitizen", user.IsSouthAfricanCitizen?.ToString() ?? ""),
+            
+            // Identity
+            new Claim("IdNumber", user.IdNumber ?? ""),
+            new Claim("DateOfBirth", user.DateOfBirth?.ToString("O") ?? ""),
+            new Claim("IsMinor", user.IsMinor?.ToString() ?? ""),
+            
+            // Contact / Address
+            new Claim("PhysicalAddress", user.PhysicalAddress ?? ""),
+            new Claim("Province", user.Province ?? ""),
+            new Claim("City", user.City ?? ""),
+            new Claim("District", user.District ?? ""),
+            new Claim("PostalCode", user.PostalCode ?? ""),
+            
+            // Employment & representation
+            new Claim("EmploymentStatus", user.EmploymentStatus ?? ""),
+            new Claim("Representing", user.Representing ?? "")
         };
-
 
         var roles = _userManager.GetRolesAsync(user).Result;
         if (roles.Any())
