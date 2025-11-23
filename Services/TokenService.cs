@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 public class TokenService : ITokenService
 {
@@ -28,7 +29,10 @@ public class TokenService : ITokenService
 
 
         var roles = _userManager.GetRolesAsync(user).Result;
-        claims.AddRange(roles.Select(role => new Claim("Roles", role)));
+        if (roles.Any())
+        {
+            claims.Add(new Claim("Roles", JsonSerializer.Serialize(roles.ToList())));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
