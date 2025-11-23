@@ -82,12 +82,42 @@ public class AuthController : ControllerBase
             return BadRequest(validationResult.Errors);
         }
 
-        var user = new ApplicationUser { UserName = model.Username, Email = model.Email };
+        var user = new ApplicationUser
+        {
+            UserName = model.Username,
+            Email = model.Email,
+
+            // Personal info
+            Title = model.Title,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Race = model.Race,
+            Gender = model.Gender,
+            HasDisability = model.HasDisability,
+            IsSouthAfricanCitizen = model.IsSouthAfricanCitizen,
+
+            // Identity
+            IdNumber = model.IdNumber,
+            DateOfBirth = model.DateOfBirth,
+            IsMinor = model.IsMinor,
+
+            // Contact / Address
+            PhoneNumber = model.PhoneNumber,
+            PhysicalAddress = model.PhysicalAddress,
+            Province = model.Province,
+            City = model.City,
+            District = model.District,
+            PostalCode = model.PostalCode,
+
+            // Employment & representation
+            EmploymentStatus = model.EmploymentStatus,
+            Representing = model.Representing
+        };
         var result = await _userManager.CreateAsync(user, model.Password).ConfigureAwait(false);
 
         if (result.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user, "FrontEnd").ConfigureAwait(false);
+            await _userManager.AddToRoleAsync(user, "Applicant").ConfigureAwait(false);
             var token = _tokenService.GenerateToken(user);
             var refreshToken = await _tokenService.GenerateRefreshToken(user).ConfigureAwait(false);
             return Ok(new { Token = token, RefreshToken = refreshToken.Token });

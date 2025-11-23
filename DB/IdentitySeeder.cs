@@ -13,7 +13,8 @@ public static class SeedData
         var users = new[]
         {
         new { UserName = "Frontend", Email = "user1@example.com", Password = "Pass@word1", Roles = "Frontend" },
-        new { UserName = "Admin", Email = "user2@example.com", Password = "Pass@word1", Roles = "Admin,Frontend" }
+        new { UserName = "Admin", Email = "user2@example.com", Password = "Pass@word1", Roles = "Admin,Frontend" },
+        new { UserName = "Applicant", Email = "applicant@example.com", Password = "Pass@word1", Roles = "Applicant" }
     };
 
         foreach (var u in users)
